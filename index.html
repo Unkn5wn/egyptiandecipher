@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Egyptian Hieroglyphs Decipher (Images & Unicode)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    body { background: #f3f6fa; font-family: "Segoe UI", Arial, sans-serif; color:#222; }
+    .container { background: #fff; box-shadow: 0 2px 14px rgba(40,60,110,.08); border-radius: 13px; padding: 2.1rem 1.5rem 2.3rem 1.5rem; margin: 2.3rem auto; max-width: 600px; width: 99vw; border: 1px solid #dae1f5; display: flex; flex-direction: column; gap: 1.2rem;}
+    h1 { color:#4567ba; font-weight:700; font-size:1.25rem; text-align:center;}
+    label { font-size:1em; color:#344e9a; font-weight:500; margin-bottom:0.18em; }
+    input[type=text]{ width:100%; max-width:100%; box-sizing: border-box; font-size:1.16em; padding:0.65em 0.8em; border-radius:6px; border:1px solid #bdd; background:#f9fafd; margin-bottom:.6em; outline:none; transition:border .15s;}
+    input[type=text]:focus { border:2px solid #588cff; background:#f2f7ff; }
+    button { background:#4567ba; color:#fff; font-weight:bold; font-size:1.08em; border:none; border-radius:7px; padding:0.44em 1.21em; cursor:pointer; transition:background .14s; margin-right: .4em;}
+    button:hover { background:#61b0fe; }
+    .row {display:flex; align-items:center; gap:.6em; margin-bottom: .5em;}
+    .result { font-size:2em; letter-spacing: .09em; padding:1em; background:#f2f7fd; color:#222; border-radius:.72em; min-height:2.2em; margin-top:.7em; font-family: "Segoe UI", "Noto Sans Egyptian Hieroglyphs", Arial, sans-serif;}
+    .msg { margin:.5em 0 .1em 0; font-size:.98em; color:#789;}
+    #notif { color:#19b473; font-weight:600; font-size:1em; opacity:0; transition:opacity .22s;}
+    table {width:100%;border-spacing:0; margin-top:.45em;font-size:1.01em;}
+    th,td {padding:0.34em 0.22em;}
+    th {background:#e1eafd;}
+    td {border-bottom:1px solid #ededed;}
+    .hiero {font-size:1.32em;}
+    .glyph-img { height:1.3em;vertical-align:middle;}
+    .refmsg {
+      background: #eee6e2;
+      color: #684013;
+      border-left: 6px solid #f6b324;
+      border-radius:7px;
+      padding: 0.7em 1.2em;
+      margin: 1em 0 1.2em 0;
+      font-size: 1em;
+    }
+    .unicode-link {
+      color: #4668ba;
+      text-decoration: underline;
+      font-weight: 600;
+      transition:color 0.15s;
+    }
+    .unicode-link:hover {
+      color: #668cff;
+    }
+    @media(max-width:620px){ .container{padding:.93em .01em 1.18em .01em;} .result{font-size:1.24em;} }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>A–Z to Egyptian Hieroglyphs (Some Letters Use Images)</h1>
+    <div class="msg">
+      Enter A–Z text. Images are used for selected letters, others are Unicode. <br>
+      If a Unicode hieroglyph is not visible, reference:
+      <a href="https://www.unicode.org/charts/PDF/U13000.pdf" class="unicode-link" target="_blank">unicode.org/charts/PDF/U13000.pdf</a>
+    </div>
+    <label for="txtInput">Input:</label>
+    <input type="text" id="txtInput" placeholder="HELLO COW or ABC">
+    <div class="row">
+      <button onclick="decipher()">Decipher</button>
+      <button onclick="clearFields()">Clear</button>
+      <button onclick="copyResult()">Copy</button>
+      <span id="notif"></span>
+    </div>
+    <div class="result" id="resultArea"></div>
+    <details style="margin:1em 0 0.2em 0;"><summary><b>Unicode/Image Mapping Table</b></summary>
+      <div class="refmsg" style="margin:0 0 .8em 0;">
+        Unicode chart: <a href="https://www.unicode.org/charts/PDF/U13000.pdf" class="unicode-link" target="_blank">unicode.org/charts/PDF/U13000.pdf</a>
+      </div>
+      <div id="tableArea"></div>
+    </details>
+  </div>
+  <script>
+    // Example image file names; update as needed to match your actual file names.
+    const CUP_IMG_SRC = "cup_1436C.png";
+    const HAND_IMG_SRC = "hand_130A7.png";
+    const FEATHER_IMG_SRC = "feather_13D22.png";
+    const VIPER_IMG_SRC = "viper_13D5D.png";
+    const POT_IMG_SRC = "pot_13F46.png";
+    const WICK_IMG_SRC = "wick_14338.png";
+    const COBRA_IMG_SRC = "cobra_13D70.png";
+    const LION_IMG_SRC = "lion_13AC4.png";
+    const OWL_IMG_SRC = "owl_13C2D.png";
+    const WATER_IMG_SRC = "water_13F31.png";
+    const CHICK_IMG_SRC = "chick_13CE0.png";
+    const STOOL_IMG_SRC = "stool_143CE.png";
+    const HILL_IMG_SRC = "hill_13F27.png";
+    const MOUTH_IMG_SRC = "mouth_13994.png";
+    const CLOTH_IMG_SRC = "cloth_13E1B.png";
+    const LOAF_IMG_SRC = "loaf_139C5.png";
+    const FEATHERS_IMG_SRC = "feathers_13D25.png";
+    const BOLT_IMG_SRC = "bolt_13F4A.png";
+
+    // Each entry: letter, Unicode, name, (optionally: imgSrc).
+    const hieroList = [
+      { l:"A", name:"Vulture",  cp:"1313F" },
+      { l:"B", name:"Leg",      cp:"130BE" },
+      { l:"C", name:"Cup",      cp:"1436C", img: CUP_IMG_SRC },
+      { l:"D", name:"Hand",     cp:"130A7", img: HAND_IMG_SRC },
+      { l:"E", name:"Feather",  cp:"13D22", img: FEATHER_IMG_SRC },
+      { l:"F", name:"Viper",    cp:"13D5D", img: VIPER_IMG_SRC },
+      { l:"G", name:"Pot",      cp:"13F46", img: POT_IMG_SRC },
+      { l:"H", name:"Wick",     cp:"14338", img: WICK_IMG_SRC },
+      { l:"I", name:"Feather",  cp:"13D5D", img: FEATHER_IMG_SRC },
+      { l:"J", name:"Cobra",    cp:"13D70", img: COBRA_IMG_SRC },
+      { l:"K", name:"Cup",      cp:"14352", img: CUP_IMG_SRC },
+      { l:"L", name:"Lion",     cp:"13AC4", img: LION_IMG_SRC },
+      { l:"M", name:"Owl",      cp:"13C2D", img: OWL_IMG_SRC },
+      { l:"N", name:"Water",    cp:"13F31", img: WATER_IMG_SRC },
+      { l:"O", name:"Chick",    cp:"13CE0", img: CHICK_IMG_SRC },
+      { l:"P", name:"Stool",    cp:"143CE", img: STOOL_IMG_SRC },
+      { l:"Q", name:"Hill",     cp:"13F27", img: HILL_IMG_SRC },
+      { l:"R", name:"Mouth",    cp:"13994", img: MOUTH_IMG_SRC },
+      { l:"S", name:"Cloth",    cp:"13E1B", img: CLOTH_IMG_SRC },
+      { l:"T", name:"Loaf",     cp:"139C5", img: LOAF_IMG_SRC },
+      { l:"U", name:"Chick",    cp:"13CE0", img: CHICK_IMG_SRC },
+      { l:"V", name:"Viper",    cp:"13D5D", img: VIPER_IMG_SRC },
+      { l:"W", name:"Chick",    cp:"13CE0", img: CHICK_IMG_SRC },
+      { l:"X", name:"Cloth",    cp:"13E1B", img: CLOTH_IMG_SRC },
+      { l:"Y", name:"Feathers", cp:"131CB", img: FEATHERS_IMG_SRC },
+      { l:"Z", name:"Bolt",     cp:"13F4A", img: BOLT_IMG_SRC },
+    ];
+
+    // Build the map for decipher output
+    const hieroMap = {};
+    hieroList.forEach(x => {
+      if (x.img) {
+        hieroMap[x.l] = `<img src="${x.img}" class="glyph-img" alt="${x.name} for ${x.l}">`;
+      } else {
+        hieroMap[x.l] = String.fromCodePoint(parseInt(x.cp, 16));
+      }
+    });
+
+    function decipher() {
+      let text = document.getElementById('txtInput').value;
+      let out = [];
+      for(const ch of text.toUpperCase()){
+        if(hieroMap[ch]) out.push(hieroMap[ch]);
+      }
+      let result = out.join("");
+      document.getElementById('resultArea').innerHTML = result.length ? result : "No valid letters to convert.";
+    }
+    function clearFields(){
+      document.getElementById('txtInput').value="";
+      document.getElementById('resultArea').textContent = "";
+      document.getElementById('notif').style.opacity=0;
+    }
+    function copyResult(){
+      let txt = document.getElementById('resultArea').innerText; // plain text, since images won't copy
+      if(!txt || txt === "No valid letters to convert.") return;
+      navigator.clipboard.writeText(txt).then(()=>{
+        let note=document.getElementById('notif');note.textContent="Copied!";note.style.opacity=1;
+        setTimeout(()=>{note.style.opacity=0;},1750);
+      });
+    }
+
+    // Unicode/Image Table
+    let tableHTML = `<table><tr><th>Letter</th><th>Unicode</th><th>Sign Name</th><th>Hieroglyph</th></tr><tbody>`;
+    hieroList.forEach(x=>{
+      let glyph;
+      if (x.img) {
+        glyph = `<img src="${x.img}" class="glyph-img" alt="${x.name} for ${x.l}">`;
+      } else {
+        glyph = String.fromCodePoint(parseInt(x.cp,16));
+      }
+      tableHTML += `<tr>
+        <td>${x.l}</td>
+        <td>U+${x.cp}</td>
+        <td>${x.name}</td>
+        <td class="hiero">${glyph}</td>
+      </tr>`;
+    });
+    tableHTML += "</tbody></table>";
+    document.getElementById('tableArea').innerHTML = tableHTML;
+  </script>
+</body>
+</html>
